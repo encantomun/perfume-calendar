@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="매일 사용하는 향수를 기록하는 캘린더 앱">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <title>향수 캘린더</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .user-info {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .user-email {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-title {
+            font-size: 24px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+        }
+
+        .google-btn {
+            background: #fff;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+
+        .google-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .kakao-btn {
+            background: #FEE500;
+            color: #000;
+        }
+
+        .kakao-btn:hover {
+            background: #FDDC00;
+        }
+
+        .month-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .month-nav button {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .month-nav button:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .month-nav span {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .calendar {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .weekday {
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+            padding: 10px 0;
+            font-size: 14px;
+        }
+
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            background: #f8f9fa;
+            padding: 5px;
+        }
+
+        .day:active {
+            transform: scale(0.95);
+        }
+
+        .day.other-month {
+            opacity: 0.3;
+        }
+
+        .day.today {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        .day.has-perfume {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .day-number {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .perfume-name {
+            font-size: 9px;
+            text-align: center;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            max-height: 22px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #667eea;
+            font-size: 22px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .history-section {
+            margin-bottom: 20px;
+        }
+
+        .history-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .history-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .history-item {
+            background: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .history-item:active {
+            background: #667eea;
+            color: white;
+        }
+
+        .perfume-list {
+            margin-top: 15px;
+        }
+
+        .perfume-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .perfume-info {
+            flex: 1;
+        }
+
+        .perfume-name-item {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .perfume-brand {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .fragrantica-link-item {
+            color: #667eea;
+            font-size: 12px;
+            text-decoration: none;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .add-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .add-btn:active {
+            transform: scale(0.98);
+        }
+
+        .notes-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-top: 10px;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .notes-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .perfume-notes {
+            margin-top: 8px;
+            padding: 10px;
+            background: #fff3cd;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #856404;
+            line-height: 1.5;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div id="loadingScreen" class="loading">
+        로딩 중...
+    </div>
+
+    <div id="loginScreen" class="container" style="display: none;">
+        <div class="header">
+            <h1>
+                <span>💐</span>
+                향수 캘린더
+                <span>💐</span>
+            </h1>
+        </div>
+        <div class="login-container">
+            <div class="login-title">환영합니다!</div>
+            <div class="login-subtitle">로그인하여 모든 기기에서 향수 기록을 동기화하세요</div>
+            
+            <button class="login-btn google-btn" onclick="loginWithGoogle()">
+                <span>🔐</span>
+                Google로 로그인
+            </button>
+            
+            <button class="login-btn kakao-btn" onclick="loginWithKakao()">
+                <span>💬</span>
+                Kakao로 로그인
+            </button>
+        </div>
+    </div>
+
+    <div id="appScreen" class="container" style="display: none;">
+        <div class="header">
+            <h1>
+                <span>💐</span>
+                향수 캘린더
+                <span>💐</span>
+            </h1>
+        </div>
+
+        <div class="user-info">
+            <span class="user-email" id="userEmail"></span>
+            <button class="logout-btn" onclick="logout()">로그아웃</button>
+        </div>
+
+        <div class="month-nav">
+            <button onclick="previousMonth()">‹</button>
+            <span id="currentMonth"></span>
+            <button onclick="nextMonth()">›</button>
+        </div>
+
+        <div class="calendar">
+            <div class="weekdays">
+                <div class="weekday">일</div>
+                <div class="weekday">월</div>
+                <div class="weekday">화</div>
+                <div class="weekday">수</div>
+                <div class="weekday">목</div>
+                <div class="weekday">금</div>
+                <div class="weekday">토</div>
+            </div>
+            <div class="days" id="calendarDays"></div>
+        </div>
+    </div>
+
+    <div class="modal" id="perfumeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalDate"></h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+
+            <div class="history-section" id="historySection" style="display: none;">
+                <div class="history-title">최근 사용한 향수</div>
+                <div class="history-items" id="historyItems"></div>
+            </div>
+
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="perfumeSearch" 
+                    placeholder="향수 이름 입력..."
+                >
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="brandSearch" 
+                    placeholder="브랜드 이름 입력..."
+                    style="margin-top: 10px;"
+                >
+                <textarea 
+                    class="notes-input" 
+                    id="notesInput" 
+                    placeholder="메모 (선택사항): 기분, 날씨, 지속력 등..."
+                ></textarea>
+            </div>
+
+            <button class="add-btn" onclick="addPerfume()">향수 추가</button>
+
+            <div class="perfume-list" id="perfumeList"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- Kakao SDK -->
+    <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+
+    <script>
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyB_wlzgzbgXRJb39Cbli9MTHMpMqErAj9c",
+            authDomain: "perfume-calendar-208d3.firebaseapp.com",
+            databaseURL: "https://perfume-calendar-208d3-default-rtdb.firebaseio.com",
+            projectId: "perfume-calendar-208d3",
+            storageBucket: "perfume-calendar-208d3.firebasestorage.app",
+            messagingSenderId: "211756274792",
+            appId: "1:211756274792:web:6a411654cae055885417dd"
+            measurementId: "G-VTGGXTFW7G"
+        };
+
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        // Kakao 초기화 (사용자가 자신의 Kakao JavaScript 키로 교체해야 함)
+        Kakao.init('YOUR_KAKAO_JAVASCRIPT_KEY');
+
+        let currentDate = new Date();
+        let selectedDate = null;
+        let currentUser = null;
+        let perfumeHistory = [];
+
+        // 인증 상태 변경 감지
+        auth.onAuthStateChanged(user => {
+            document.getElementById('loadingScreen').style.display = 'none';
+            
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appScreen').style.display = 'block';
+                document.getElementById('userEmail').textContent = user.email || user.displayName;
+                
+                loadDataFromFirebase();
+                loadHistory();
+                renderCalendar();
+            } else {
+                currentUser = null;
+                document.getElementById('loginScreen').style.display = 'block';
+                document.getElementById('appScreen').style.display = 'none';
+            }
+        });
+
+        // Google 로그인
+        async function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                alert('로그인 실패: ' + error.message);
+            }
+        }
+
+        // Kakao 로그인
+        function loginWithKakao() {
+            Kakao.Auth.login({
+                success: function(authObj) {
+                    Kakao.API.request({
+                        url: '/v2/user/me',
+                        success: function(res) {
+                            // Kakao 인증 정보로 Firebase 커스텀 토큰 생성 필요
+                            // 현재는 Google 로그인만 완전히 작동
+                            alert('Kakao 로그인은 현재 개발 중입니다. Google 로그인을 사용해주세요.');
+                        },
+                        fail: function(error) {
+                            alert('Kakao 로그인 실패');
+                        }
+                    });
+                },
+                fail: function(err) {
+                    alert('Kakao 로그인 실패');
+                }
+            });
+        }
+
+        // 로그아웃
+        async function logout() {
+            try {
+                await auth.signOut();
+                if (Kakao.Auth.getAccessToken()) {
+                    Kakao.Auth.logout();
+                }
+            } catch (error) {
+                alert('로그아웃 실패: ' + error.message);
+            }
+        }
+
+        // Firebase에서 데이터 로드
+        function loadDataFromFirebase() {
+            if (!currentUser) return;
+            
+            database.ref('users/' + currentUser.uid + '/perfumes').on('value', snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    // perfumeData를 전역으로 저장
+                    window.perfumeData = data;
+                    renderCalendar();
+                }
+            });
+        }
+
+        // Firebase에 데이터 저장
+        function saveDataToFirebase() {
+            if (!currentUser) return;
+            
+            database.ref('users/' + currentUser.uid + '/perfumes').set(window.perfumeData || {});
+        }
+
+        // 히스토리 로드
+        function loadHistory() {
+            if (!currentUser) return;
+            
+            database.ref('users/' + currentUser.uid + '/history').limitToLast(10).on('value', snapshot => {
+                const data = snapshot.val();
+                if (data) {
+                    perfumeHistory = Object.values(data).reverse();
+                }
+            });
+        }
+
+        // 히스토리 저장
+        function saveToHistory(perfume) {
+            if (!currentUser) return;
+            
+            const historyRef = database.ref('users/' + currentUser.uid + '/history');
+            historyRef.push({
+                name: perfume.name,
+                brand: perfume.brand,
+                timestamp: Date.now()
+            });
+        }
+
+        window.perfumeData = {};
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            document.getElementById('currentMonth').textContent = 
+                `${year}년 ${month + 1}월`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            const prevLastDate = new Date(year, month, 0).getDate();
+
+            const daysContainer = document.getElementById('calendarDays');
+            daysContainer.innerHTML = '';
+
+            const today = new Date();
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+            // Previous month days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = document.createElement('div');
+                day.className = 'day other-month';
+                day.innerHTML = `<div class="day-number">${prevLastDate - i}</div>`;
+                daysContainer.appendChild(day);
+            }
+
+            // Current month days
+            for (let i = 1; i <= lastDate; i++) {
+                const day = document.createElement('div');
+                day.className = 'day';
+                
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const perfumes = window.perfumeData[dateKey];
+                const hasPerfume = perfumes && perfumes.length > 0;
+
+                if (isCurrentMonth && i === today.getDate()) {
+                    day.classList.add('today');
+                } else if (hasPerfume) {
+                    day.classList.add('has-perfume');
+                }
+
+                let perfumeText = '';
+                if (hasPerfume) {
+                    perfumeText = `<div class="perfume-name">${perfumes[0].name}</div>`;
+                }
+
+                day.innerHTML = `
+                    <div class="day-number">${i}</div>
+                    ${perfumeText}
+                `;
+
+                day.onclick = () => openModal(year, month, i);
+                daysContainer.appendChild(day);
+            }
+
+            // Next month days
+            const remainingDays = 42 - (firstDay + lastDate);
+            for (let i = 1; i <= remainingDays; i++) {
+                const day = document.createElement('div');
+                day.className = 'day other-month';
+                day.innerHTML = `<div class="day-number">${i}</div>`;
+                daysContainer.appendChild(day);
+            }
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function openModal(year, month, day) {
+            selectedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            document.getElementById('modalDate').textContent = 
+                `${year}년 ${month + 1}월 ${day}일`;
+            
+            document.getElementById('perfumeSearch').value = '';
+            document.getElementById('brandSearch').value = '';
+            document.getElementById('notesInput').value = '';
+            
+            renderHistory();
+            renderPerfumeList();
+            document.getElementById('perfumeModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('perfumeModal').classList.remove('active');
+        }
+
+        function renderHistory() {
+            const historySection = document.getElementById('historySection');
+            const historyItems = document.getElementById('historyItems');
+            
+            if (perfumeHistory.length === 0) {
+                historySection.style.display = 'none';
+                return;
+            }
+
+            historySection.style.display = 'block';
+            
+            // 중복 제거
+            const uniqueHistory = [...new Map(perfumeHistory.map(item => 
+                [`${item.name}-${item.brand}`, item]
+            )).values()];
+
+            historyItems.innerHTML = uniqueHistory.map(item => `
+                <div class="history-item" onclick="selectFromHistory('${item.name}', '${item.brand}')">
+                    ${item.name}
+                </div>
+            `).join('');
+        }
+
+        function selectFromHistory(name, brand) {
+            document.getElementById('perfumeSearch').value = name;
+            document.getElementById('brandSearch').value = brand;
+        }
+
+        function addPerfume() {
+            const perfumeName = document.getElementById('perfumeSearch').value.trim();
+            const brandName = document.getElementById('brandSearch').value.trim();
+            const notes = document.getElementById('notesInput').value.trim();
+
+            if (!perfumeName) {
+                alert('향수 이름을 입력해주세요!');
+                return;
+            }
+
+            if (!window.perfumeData[selectedDate]) {
+                window.perfumeData[selectedDate] = [];
+            }
+
+            const perfume = {
+                name: perfumeName,
+                brand: brandName || '브랜드 미입력',
+                notes: notes,
+                timestamp: new Date().toISOString()
+            };
+
+            window.perfumeData[selectedDate].push(perfume);
+
+            saveDataToFirebase();
+            saveToHistory(perfume);
+            renderPerfumeList();
+            renderCalendar();
+
+            document.getElementById('perfumeSearch').value = '';
+            document.getElementById('brandSearch').value = '';
+            document.getElementById('notesInput').value = '';
+        }
+
+        function deletePerfume(index) {
+            if (confirm('이 향수 기록을 삭제하시겠습니까?')) {
+                window.perfumeData[selectedDate].splice(index, 1);
+                
+                if (window.perfumeData[selectedDate].length === 0) {
+                    delete window.perfumeData[selectedDate];
+                }
+
+                saveDataToFirebase();
+                renderPerfumeList();
+                renderCalendar();
+            }
+        }
+
+        function getFragranticaUrl(perfumeName, brandName) {
+            const searchQuery = `${brandName} ${perfumeName}`.trim();
+            const encodedQuery = encodeURIComponent(searchQuery);
+            return `https://www.fragrantica.com/search/?query=${encodedQuery}`;
+        }
+
+        function renderPerfumeList() {
+            const listContainer = document.getElementById('perfumeList');
+            const perfumes = window.perfumeData[selectedDate] || [];
+
+            if (perfumes.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state">이 날 기록된 향수가 없습니다</div>';
+                return;
+            }
+
+            listContainer.innerHTML = perfumes.map((perfume, index) => `
+                <div class="perfume-item">
+                    <div class="perfume-info">
+                        <div class="perfume-name-item">${perfume.name}</div>
+                        <div class="perfume-brand">${perfume.brand}</div>
+                        <a href="${getFragranticaUrl(perfume.name, perfume.brand)}" 
+                           target="_blank" 
+                           class="fragrantica-link-item">
+                            🔍 Fragrantica에서 보기
+                        </a>
+                        ${perfume.notes ? `<div class="perfume-notes">${perfume.notes}</div>` : ''}
+                    </div>
+                    <button class="delete-btn" onclick="deletePerfume(${index})">삭제</button>
+                </div>
+            `).join('');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('perfumeModal').onclick = function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        };
+
+        // Enter key to add perfume
+        document.getElementById('perfumeSearch').onkeypress = function(e) {
+            if (e.key === 'Enter') {
+                addPerfume();
+            }
+        };
+
+        document.getElementById('brandSearch').onkeypress = function(e) {
+            if (e.key === 'Enter') {
+                addPerfume();
+            }
+        };
+
+        // Register service worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed'));
+            });
+        }
+    </script>
+</body>
+</html>
